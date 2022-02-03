@@ -52,6 +52,7 @@ class DynamicEdgeConv_DGM(EdgeConv):
     def __init__(self, in_channels, out_channels, k):
         super().__init__(in_channels, out_channels, k)
 
+        # in case you pass k=0 it will be incrtemented by 1
         if k == 0:
             self.k_degree = k + 1
             print("Avoid using DynamicEdgeConv_DGM with k=0")
@@ -61,26 +62,29 @@ class DynamicEdgeConv_DGM(EdgeConv):
 
         
         self.eps = 1e-6
+        # in the paper authors use different networks for F and G
+        # self.mapper represent F
         self.mapper = Seq(Linear(in_channels, in_channels),
                           ReLU(), 
                           Linear(in_channels, in_channels)
                         )
+        # initialize temp. parameter with 1, however not sure this is a good idea :)
         self.temperature = torch.nn.Parameter(torch.Tensor([1]))
         
         
     def forward(self, x, batch=None):
         # Case when k=0, hence only self-loop
-        x_g = self.mapper(x)
-        edge_index, self.probs, self.mask = self.sample_edges(x_g)
 
-        if self.k_degree==0: raise Exception('k can not be 0')
-        
+        # Map x into some new space 
+        x_g = self.mapper(x)
+        # Sample edges
+        edge_index, self.probs, self.mask = self.sample_edges(x_g)
         self.edge_index = edge_index
+        
         return super().forward(x, edge_index)
 
     def sample_edges(self, nodes_emb):
         # Probabilities for edges
-
         probs = torch.exp(-self.temperature * torch.sum(nodes_emb - nodes_emb.unsqueeze(1), dim=-1)**2) + self.eps
         # Sample and extract edge indecies
         edge_index, mask = self.k_degree_sample(probs)
