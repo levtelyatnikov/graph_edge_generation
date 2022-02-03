@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Write your model faster with pytorch-lightning-wadb-code-backbone
 This repository provides the base code for pytorch-lightning and weight and biases simultaneous integration + hydra (to keep configs clean).
 This repository shows a **Toy configuration of CV classificator**
@@ -66,3 +67,7 @@ Write your model pipline (includes with train step logic, see **toy** example). 
 Done. 
 
 Configure all parameters through .yaml file with integrated [wandb](https://docs.wandb.ai/)
+=======
+# graph_edge_generation
+graph_edge_generation
+>>>>>>> 02870f148f8abf7c90f23a1b1e153a9f9a942101
