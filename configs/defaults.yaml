@@ -1,20 +1,20 @@
 defaults:
   - _self_
   - dataloader: dataset
-  - model: model
+  - model: EdgeNet
   
 trainer:
-  cuda_number: '0'
+  cuda_number: '2'
   gpus: 1
   is_logger_enabled: True
   num_sanity_val_steps: 5
-  check_val_every_n_epoch: 1
+  check_val_every_n_epoch: 10
   log_every_n_steps: 1
 
 wadb:
-  logger_project_name: project name
-  logger_name: logger name
-  entity: entity name
+  logger_project_name: some_project
+  logger_name: digits
+  entity: edge_generation
 
 
 
