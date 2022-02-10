@@ -1,19 +1,31 @@
 dataset_type: CustomDataset
-dataset_name: load_digits() #load_breast_cancer, load_digits, load_boston, load_iris, load_diabetes, load_wine
+
+# load_breast_cancer, load_digits, load_boston, load_iris, load_diabetes, load_wine
+# Dataset which are from classification set (folder) have to be written in next form: name + /, Ex: breast-cancer-wisc/
+dataset_name: molec-biol-splice # wine-quality-white # optical_train # pendigits_train
+
 # Train/val parameters split
 val_size: 0.3
-data_seed: 0
+data_seed: 223
 
 # Dataloader parameters 
 graph_size: 'None'
-n_batches: 1         # this argument passed into train dataset hence is graph size small then we need to sample many small graphs
-train_batch_size: 1   # always which graph_size is none 1
-val_batch_size: 1     # always 1  because manually set graph_size = None for validation
+n_batches: 1          # This argument passed into train dataset hence is graph size small then we need to sample many small graphs
+train_batch_size: 1   # Always which graph_size is none 1
+val_batch_size: 1     # Always 1  because manually set graph_size = None for validation
 num_workers: 4
 
 
+# Precompute graph before training, needed to perform gcn
+# Precomputeed graph can be done in many ways
+precompute_graph: None                    # KNN, random, intraclass, intraclass_withnoise, fully_connected or None 
+precompute_graph_k: 3                     # Number of neighbours in KNN returned
+graph_seed: 0                             # Useful solo for random, intraclass, intraclass_withnoise
+inter_class_k: 0
 
-#transforms: CustomImageDatasetTransforms(cfg)
-#target_transform: None
+
+# SVM baseline
+f1_svm: 0.0  # Prepare values to overrite it later
+acc_svm: 0.0 # Prepare values to overrite it later
 
 

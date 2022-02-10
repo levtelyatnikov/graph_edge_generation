@@ -9,7 +9,7 @@ from models.model import Network
 class LitModel(pl.LightningModule):
     def __init__(self, cfg: DictConfig):
         super().__init__()
-        pl.utilities.seed.seed_everything(0)
+        pl.utilities.seed.seed_everything(cfg.seed_everything)
         # -----------------!!!----------------
         # If you want to substitute models from .yaml file
         # it is necessary to map models name: class
@@ -21,7 +21,9 @@ class LitModel(pl.LightningModule):
         self.save_hyperparameters(cfg)
 
         # get model from .yaml file
-        self.model = Network(cfg.model)
+        self.model = Network(cfg.dataloader.f1_svm,
+                             cfg.dataloader.acc_svm,
+                             cfg.model)
 
        
     # logic for a single training step

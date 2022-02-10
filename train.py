@@ -1,3 +1,4 @@
+from logging import raiseExceptions
 import os
 # hydra
 import hydra 
@@ -31,11 +32,16 @@ def get_dataloader(cfg: DictConfig):
 def main(cfg: DictConfig):
     setup_cuda(cfg)
     print(OmegaConf.to_yaml(cfg))
+    
+    
+    if (cfg.dataloader.precompute_graph != 'None') and (cfg.model.type != 'gcnNnet'):
+        assert 1==2, f'Precomputed graph with {cfg.dataloader.precompute_graph} and model {cfg.model.type}'
 
     # Configure weight and biases 
+    
     logger = pl_loggers.WandbLogger(
         project=cfg.wadb.logger_project_name,
-        name=cfg.wadb.logger_name, 
+        name=cfg.wadb.logger_name if cfg.wadb.logger_name != 'None' else None, 
         entity=cfg.wadb.entity)
             
     # Configure trained
@@ -55,6 +61,10 @@ def main(cfg: DictConfig):
     batch = next(iter(datamodule.train_dataloader()))
     cfg.model.opt.loader_batches = len(datamodule.train_dataloader())
     cfg.model.insize ,cfg.model.outsize = batch.x.shape[1], torch.unique(batch.y).shape[0]
+
+    # Get dataset SVM baseline
+    cfg.dataloader.f1_svm = datamodule.train_dataset.f1_svm
+    cfg.dataloader.acc_svm = datamodule.train_dataset.acc_svm
 
     model = LitModel(cfg=cfg)
 

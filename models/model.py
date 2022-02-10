@@ -3,6 +3,7 @@ from torch import nn
 from torch.nn import functional as F
 from omegaconf import DictConfig
 from models.EdgeNet import EdgeNet
+from models.gcnNet import GCNnet
 from torchmetrics import Accuracy, AveragePrecision, AUROC
 from sklearn.metrics import f1_score, confusion_matrix
 import numpy as np
@@ -10,10 +11,11 @@ import numpy as np
 
 class Network(nn.Module):
     """Network"""
-    def __init__(self, cfg: DictConfig):
+    def __init__(self, f1_svm, acc_svm, cfg: DictConfig):
         super().__init__()
         self.cfg = cfg
-        networks = {'EdgeNet':EdgeNet}
+        networks = {'EdgeNet': EdgeNet, 
+                    'gcnNnet': GCNnet}
         # Import model
         self.model = networks.get(cfg.type)(cfg) # cfg.model.type
         
@@ -25,9 +27,12 @@ class Network(nn.Module):
         self.avr_precision = AveragePrecision(num_classes = cfg.outsize)
         self.aucroc = AUROC(num_classes = cfg.outsize)
 
-    def forward(self, x):
-        
-        logits = self.model(x)
+        self.f1_svm = torch.tensor(f1_svm)
+        self.acc_svm = torch.tensor(acc_svm)
+
+    def forward(self, batch):
+
+        logits = self.model(batch)
         return logits
     
     def loss_function(self, batch):
@@ -39,7 +44,7 @@ class Network(nn.Module):
         """
         
         x, y = batch.x.squeeze(0), batch.y.squeeze(0)
-        logits = self.forward(x)  
+        logits = self.forward(batch)  
         loss_CE = self.crossentropy(logits, y)
 
         preds = torch.argmax(logits, dim=1)
@@ -65,6 +70,8 @@ class Network(nn.Module):
             "f1": torch.Tensor([f1]),
             "avr_precision": avr_precision,
             "aucroc": aucroc,
+            "f1_svm": self.f1_svm,
+            "acc_svm": self.acc_svm
             
             
             }
@@ -83,18 +90,19 @@ class Network(nn.Module):
         class_acc = self.class_accuracy(y, preds)
         y, preds = y.view(1, -1), preds.view(1, -1)
         
-        # get accuracy weight for each class in sequence 
+        # Get accuracy weight for each class in sequence 
         class_acc = class_acc[y].to(device)
         
         # 1) (y == preds) * (class_acc - 1) is equivalent to acc_cl - 1
         # 2) (y != preds) * class_acc) is equivalent to acc_cl
         # Hence from 1) y == preds we have acc_cl - 1;  
         # From 2) y != preds we have acc_cl
-        delta_vector = (y != preds) * class_acc  + (y == preds) * (class_acc - 1)
+        #delta_vector = (y != preds) * class_acc  + (y == preds) * (class_acc - 1)
+        delta_vector = (y != preds) * class_acc # + (y == preds) * (class_acc - 1)
         return delta_vector
 
     def prob_loss(self, y, preds, device):
-        eps = 10e-6
+        #eps = 10e-6
         module = self.model.model
         n_modules = len(module)
         prob_L = torch.cat([module[i].edge_conv.probs.unsqueeze(0) for i in range(n_modules)], dim=0)
@@ -102,11 +110,14 @@ class Network(nn.Module):
 
         d_vec = self.delta_vector(y=y, preds=preds, device=device)
 
-        weight_mask = (prob_L * mask_L) * d_vec 
+        weight_mask = (prob_L * mask_L) * d_vec
+        
+        
         #negative_mask = (mask_L == 0 ) * 1
         #weight_mask = weight_mask + negative_mask
         #weight_mask = torch.prod(weight_mask, dim=1)
         
+        # sum showed to work the best
         return torch.sum(weight_mask) #weight_mask.prod(dim=0).sum().type(torch.FloatTensor)
 
     def class_accuracy(self, y, preds):

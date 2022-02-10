@@ -1,6 +1,6 @@
 from torch import nn
 from omegaconf import DictConfig
-from models.edge_conv import DynamicEdgeConv, DynamicEdgeConv_DGM
+from models.edge_conv import DynamicEdgeConv, DynamicEdgeConv_DGM, DynamicEdgeConvMINE
 
 class EdgeNet(nn.Module):
     """EdgeNet"""
@@ -10,7 +10,8 @@ class EdgeNet(nn.Module):
 
         dynamic_edge_type = {
             "DynamicEdgeConv": DynamicEdgeConv,
-            "DynamicEdgeConv_DGM": DynamicEdgeConv_DGM
+            "DynamicEdgeConv_DGM": DynamicEdgeConv_DGM,
+            "DynamicEdgeConvMINE": DynamicEdgeConvMINE
             }
         self.cfg = cfg
         self.module = dynamic_edge_type.get(cfg.edge_generation_type)
@@ -40,7 +41,8 @@ class EdgeNet(nn.Module):
 
         self.model = nn.Sequential(*modules)
         
-    def forward(self, x):
+    def forward(self, batch):
+        x = batch.x
         logits = self.model(x)
         return logits
 

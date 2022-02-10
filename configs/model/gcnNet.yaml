@@ -1,0 +1,23 @@
+# Model name (have to be represented in self.model_types in method.py)
+type: gcnNnet # EdgeNet, gcnNnet
+edge_generation_type: None
+# Model parameters
+in_channels: []
+out_channels: []
+
+# Have to defire, hence during the initialization values of will be assigned (insize is nodes dim, outsize is number of unique labels) 
+insize: None
+outsize: None
+
+prob_reg: 0.0001
+
+# Optimizer parameters
+opt: 
+  lr: 0.004
+  warmup_steps_pct: 0.02
+  decay_steps_pct: 0.9
+  weight_decay: 0.0
+  max_epochs: 500
+  scheduler_gamma: 0.5
+  loader_batches: None
+

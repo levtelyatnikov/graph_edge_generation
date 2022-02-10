@@ -1,15 +1,17 @@
 # Model name (have to be represented in self.model_types in method.py)
 type: EdgeNet
-edge_generation_type: DynamicEdgeConv # Types: DynamicEdgeConv, DynamicEdgeConv_DGM, DynamicEdgeConvMINE
+edge_generation_type: DynamicEdgeConvMINE # Types: DynamicEdgeConv, DynamicEdgeConv_DGM, DynamicEdgeConvMINE
 
 # Model parameters
 in_channels: []
 out_channels: []
-# have to defire, hence during the initialization values of will be assigned (insize is nodes dim, outsize is number of unique labels) 
+
+# Have to defire, hence during the initialization values of will be assigned (insize is nodes dim, outsize is number of unique labels) 
 insize: None
 outsize: None
-k: [selfloop]   # Use selfloop string to get selfloop
-prob_reg: 0.0001
+k: [selfloop]
+prob_reg: 0.0
+
 # Optimizer parameters
 opt: 
   lr: 0.004
