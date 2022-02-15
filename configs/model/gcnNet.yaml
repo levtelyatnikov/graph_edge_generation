@@ -1,6 +1,6 @@
 # Model name (have to be represented in self.model_types in method.py)
-type: gcnNnet # EdgeNet, gcnNnet
-edge_generation_type: None
+type: gcnNnet                   # EdgeNet, gcnNnet
+edge_generation_type: GCNConvEG #GCNConv, GCNConvEG
 # Model parameters
 in_channels: []
 out_channels: []

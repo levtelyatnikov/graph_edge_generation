@@ -8,11 +8,10 @@ import torch
 from pytorch_lightning import Trainer
 import pytorch_lightning.loggers as pl_loggers
 from pytorch_lightning.callbacks import LearningRateMonitor
-
+from utils import ImageLogCallback
 # own modules
 from dataloader import PL_DataModule
 from method import LitModel
-
 import warnings
 
 def fxn():
@@ -52,7 +51,7 @@ def main(cfg: DictConfig):
         check_val_every_n_epoch=cfg.trainer.check_val_every_n_epoch,
         max_epochs=cfg.model.opt.max_epochs,
         log_every_n_steps=cfg.trainer.log_every_n_steps,
-        callbacks=[LearningRateMonitor("step")] if cfg.trainer.is_logger_enabled else [],)
+        callbacks=[LearningRateMonitor("step"), ImageLogCallback()] if cfg.trainer.is_logger_enabled else [],)
 
     # Setup dataloader and model
     datamodule = get_dataloader(cfg)
@@ -66,7 +65,7 @@ def main(cfg: DictConfig):
     cfg.dataloader.f1_svm = datamodule.train_dataset.f1_svm
     cfg.dataloader.acc_svm = datamodule.train_dataset.acc_svm
 
-    model = LitModel(cfg=cfg)
+    model = LitModel(datamodule=datamodule, cfg=cfg)
 
     # Train
     trainer.fit(model, datamodule)

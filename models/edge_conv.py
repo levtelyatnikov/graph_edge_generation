@@ -68,7 +68,8 @@ class DynamicEdgeConv_DGM(EdgeConv):
                           Linear(in_channels, in_channels)
                         )
         # initialize temp. parameter with 1, however not sure this is a good idea :)
-        self.temperature = torch.nn.Parameter(torch.Tensor([0.01]))
+        self.temperature = torch.nn.Parameter(torch.Tensor([0.001]))
+        
         
         
     def forward(self, x, batch=None):

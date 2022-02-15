@@ -7,7 +7,7 @@ out_channels: []
 # have to defire, hence during the initialization values of will be assigned (insize is nodes dim, outsize is number of unique labels) 
 insize: None
 outsize: None
-k: [3]         # Use selfloop string to get selfloop
+k: [100]         # Use selfloop string to get selfloop
 prob_reg: 0.0001
 # Optimizer parameters
 opt: 

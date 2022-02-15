@@ -1,6 +1,6 @@
 import torch
 import torch_cluster
-from torch_geometric.nn import MessagePassing,GCNConv
+from torch_geometric.nn import MessagePassing, GCNConv
 from torch.nn import Sequential as Seq, Linear, ReLU
 
 

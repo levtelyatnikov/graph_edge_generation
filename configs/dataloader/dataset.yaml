@@ -2,10 +2,10 @@ dataset_type: CustomDataset
 
 # load_breast_cancer, load_digits, load_boston, load_iris, load_diabetes, load_wine
 # Dataset which are from classification set (folder) have to be written in next form: name + /, Ex: breast-cancer-wisc/
-dataset_name: molec-biol-splice # wine-quality-white # optical_train # pendigits_train
+dataset_name: molec-biol-splice # molec-biol-splice # wine-quality-white # optical_train # pendigits_train
 
 # Train/val parameters split
-val_size: 0.3
+val_size: 0.5
 data_seed: 223
 
 # Dataloader parameters 
@@ -19,7 +19,7 @@ num_workers: 4
 # Precompute graph before training, needed to perform gcn
 # Precomputeed graph can be done in many ways
 precompute_graph: None                    # KNN, random, intraclass, intraclass_withnoise, fully_connected or None 
-precompute_graph_k: 3                     # Number of neighbours in KNN returned
+precompute_graph_k: 0                     # Number of neighbours in KNN returned
 graph_seed: 0                             # Useful solo for random, intraclass, intraclass_withnoise
 inter_class_k: 0
 

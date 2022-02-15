@@ -7,28 +7,34 @@ from models.gcnNet import GCNnet
 from torchmetrics import Accuracy, AveragePrecision, AUROC
 from sklearn.metrics import f1_score, confusion_matrix
 import numpy as np
-
+from models.analize_dgm import analize_dgm
+from models.analize_gcnEG import analize_gcnEG
 
 class Network(nn.Module):
     """Network"""
     def __init__(self, f1_svm, acc_svm, cfg: DictConfig):
         super().__init__()
-        self.cfg = cfg
+        self.cfg = cfg.model
         networks = {'EdgeNet': EdgeNet, 
                     'gcnNnet': GCNnet}
+        analyzer = {'EdgeNet':analize_dgm,
+                    'gcnNnet': analize_gcnEG}
         # Import model
-        self.model = networks.get(cfg.type)(cfg) # cfg.model.type
+        self.model = networks.get(self.cfg.type)(self.cfg) # cfg.model.type
         
         # Loss
         self.crossentropy = torch.nn.CrossEntropyLoss()
 
         # Metrics
         self.acc = Accuracy()
-        self.avr_precision = AveragePrecision(num_classes = cfg.outsize)
-        self.aucroc = AUROC(num_classes = cfg.outsize)
+        self.avr_precision = AveragePrecision(num_classes = self.cfg.outsize)
+        self.aucroc = AUROC(num_classes = self.cfg.outsize)
 
         self.f1_svm = torch.tensor(f1_svm)
         self.acc_svm = torch.tensor(acc_svm)
+
+        # Analyzer
+        self.analyze_stat = analyzer.get(self.cfg.type)()
 
     def forward(self, batch):
 
@@ -55,11 +61,18 @@ class Network(nn.Module):
         avr_precision = self.avr_precision(probs, y)
         aucroc = self.aucroc(probs, y)
 
-        if self.cfg.edge_generation_type == "DynamicEdgeConv_DGM":
-            res_dict_dgm = self.temperature_stat()
-            prob_loss = self.prob_loss(y=y, preds=preds, device=x.device)
-            res_dict_dgm['loss_prob'] = self.cfg.prob_reg * prob_loss
-            loss = loss_CE + self.cfg.prob_reg * prob_loss
+        temperature_condition = self.cfg.edge_generation_type == "DynamicEdgeConv_DGM" or self.cfg.edge_generation_type =='GCNConvEG'
+        if temperature_condition == True:
+            self.analyze_stat.temperature_stat(model=self.model)
+            res_dict_dgm = self.analyze_stat.d #self.temperature_stat()
+            
+            if self.cfg.edge_generation_type == "DynamicEdgeConv_DGM":
+                # Calculate loss
+                prob_loss = self.cfg.prob_reg * self.prob_loss(y=y, preds=preds, device=x.device)
+                res_dict_dgm['loss_prob'] =  prob_loss
+                loss = loss_CE + prob_loss
+            else:
+                loss = loss_CE
         else: 
             loss = loss_CE
 
@@ -75,7 +88,7 @@ class Network(nn.Module):
             
             
             }
-        if self.cfg.edge_generation_type == "DynamicEdgeConv_DGM":
+        if temperature_condition == True:
             res_dict = cat_dicts(res_dict, res_dict_dgm)
         
         return res_dict
@@ -102,7 +115,7 @@ class Network(nn.Module):
         return delta_vector
 
     def prob_loss(self, y, preds, device):
-        #eps = 10e-6
+        # eps = 10e-6
         module = self.model.model
         n_modules = len(module)
         prob_L = torch.cat([module[i].edge_conv.probs.unsqueeze(0) for i in range(n_modules)], dim=0)

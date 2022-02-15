@@ -1,7 +1,8 @@
 defaults:
   - _self_
   - dataloader: dataset
-  - model: EdgeNet_DGM        # EdgeNet, gcnNet, EdgeNet_DGM, EdgeNetMINE
+  - model: gcnNet        # EdgeNet, gcnNet, EdgeNet_DGM, EdgeNetMINE
+  
   
 trainer:
   cuda_number: '2'
@@ -9,7 +10,7 @@ trainer:
   is_logger_enabled: True
   num_sanity_val_steps: 5
   check_val_every_n_epoch: 25
-  log_every_n_steps: 25
+  log_every_n_steps: 25       # Carefull with logging, usually log train and log val have to be at the same freq!!
 
 wadb:
   logger_project_name: edge_generation_baselines

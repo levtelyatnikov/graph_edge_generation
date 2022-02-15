@@ -1,0 +1,1 @@
+{"loss": {"min": 0.13436424411240122}, "acc": {"max": 1.0}, "im": {"_type": "image-file", "path": "media/images/im_0_f751b83d50e6bfc34d36.png", "sha256": "f751b83d50e6bfc34d366e43ec7beac4c751157a2ff58ff189aca0ab3b85d926", "size": 7305667, "format": "png", "width": 11177, "height": 2237}, "_runtime": 10, "_timestamp": 1644577377, "_step": 0, "_wandb": {"runtime": 10}}

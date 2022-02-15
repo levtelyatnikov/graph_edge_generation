@@ -7,7 +7,7 @@ from models.model import Network
 
 
 class LitModel(pl.LightningModule):
-    def __init__(self, cfg: DictConfig):
+    def __init__(self, datamodule, cfg: DictConfig):
         super().__init__()
         pl.utilities.seed.seed_everything(cfg.seed_everything)
         # -----------------!!!----------------
@@ -23,8 +23,9 @@ class LitModel(pl.LightningModule):
         # get model from .yaml file
         self.model = Network(cfg.dataloader.f1_svm,
                              cfg.dataloader.acc_svm,
-                             cfg.model)
+                             cfg)
 
+        self.datamodule = datamodule
        
     # logic for a single training step
     def training_step(self, batch, batch_idx):
@@ -43,7 +44,7 @@ class LitModel(pl.LightningModule):
         keys = outputs[0].keys()
         for key in keys:
             logs["val_" + key] = torch.stack([x[key] for x in outputs]).mean()
-               
+        
         self.log_dict(logs, sync_dist=True)
     
     def configure_optimizers(self):
@@ -70,3 +71,23 @@ class LitModel(pl.LightningModule):
             [optimizer],
             [{"scheduler": scheduler, "interval": "step",}],
         )
+
+    def sample_images(self):
+        if self.hparams.model.edge_generation_type == 'DynamicEdgeConv_DGM' \
+            or self.hparams.model.edge_generation_type == 'GCNConvEG':
+            batch_val = next(iter(self.datamodule.val_dataloader()))
+            batch_train = next(iter(self.datamodule.train_dataloader()))
+
+            with torch.no_grad():
+                self.model.eval()
+                self.model(batch_train.to(self.device))
+            images_train = self.model.analyze_stat.log_A_probs_masks(model=self.model.model, batch=batch_train)
+
+            with torch.no_grad():
+                self.model.eval()
+                self.model(batch_val.to(self.device))
+            images_val = self.model.analyze_stat.log_A_probs_masks(model=self.model.model, batch=batch_val)
+            
+            return images_train, images_val
+        else: 
+            return None, None 
